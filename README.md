@@ -16,3 +16,8 @@ run from the command line with arguments
 
 
 **--interval** - the interval with which the relevance of files will be checked, by default 5 seconds.
+
+
+example
+
+./so-watch.py --source=/home/user/projects/example-project/dist/example-project/ --targetcss=/home/user/projects/my-back-end-handler/static/css/ --targetjs=/home/user/projects/my-back-end-handler/static/js/ --targethtml=/home/user/projects/my-back-end-handler/template/html/ --interval=7
