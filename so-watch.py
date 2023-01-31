@@ -16,6 +16,11 @@ argparser.add_argument(
     help="Path to folder with a builded files, with slash on the end."
     )
 argparser.add_argument(
+    '--targetmono', 
+    type=str,
+    help="Path to target folder which contains all files, with slash on the end."
+    )
+argparser.add_argument(
     '--targetjs', 
     type=str,
     help="Path to target folder which contains JavaScript files, with slash on the end."
@@ -55,19 +60,26 @@ def copy(path1, path2):
         except FileNotFoundError:
             sleep(.5)
 
-def main(source, js=None, html=None, css=None, interval=None):
+def main(source, mono=None, js=None, html=None, css=None, interval=None):
     if source is None:
         print("Has no source folder.")
         return
-    if js is None and html is None and css is None:
-        print("Has no targets.")
-        return
-    for f in source,html,js,css:
+    
+    folders = tuple()
+    if not mono:
+        if js is None and html is None and css is None:
+            print("Has no targets.")
+            return
+        folders = (html,js,css)
+    else:
+        folders=(mono,mono,mono)
+
+    for f in (source,*folders):
         if f[-1:] != '/':
             print("The directory path must have a slash on the end.")
             return
-    
-    folders = [html,js,css]
+
+        
     types = ['html' , 'js' , 'css']
     try:
         files = os.listdir(source)
@@ -83,11 +95,15 @@ def main(source, js=None, html=None, css=None, interval=None):
                     if folder is None:
                         continue
                     if file[-len(type): ] == type:
-                        if file in os.listdir(folder):
-                            if diff(source+file, folder+file):
+                        try:
+                            if file in os.listdir(folder):
+                                if diff(source+file, folder+file):
+                                    copy(source+file,folder+file)
+                            else:
                                 copy(source+file,folder+file)
-                        else:
-                            copy(source+file,folder+file)
+                        except FileNotFoundError as e:
+                            print(e)
+                            return
             os.system('clear')
             print('checked at ', datetime.now())
             sleep(interval)
@@ -100,7 +116,8 @@ def main(source, js=None, html=None, css=None, interval=None):
 
 if __name__=='__main__':
     main(
-        argvs.source, 
+        argvs.source,
+        argvs.targetmono, 
         argvs.targetjs,
         argvs.targethtml,
         argvs.targetcss,
