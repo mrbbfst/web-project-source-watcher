@@ -102,6 +102,7 @@ def main(source, mono=None, js=None, html=None, css=None, interval=None):
                             else:
                                 copy(source+file,folder+file)
                         except FileNotFoundError as e:
+                            print("I can't continue working.")
                             print(e)
                             return
             os.system('clear')

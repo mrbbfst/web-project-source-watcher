@@ -8,6 +8,8 @@ run from the command line with arguments
 
 **--source** - the directory in which the created files of the front-end project are located.
 
+**--targetmono** - Path to target folder which contains all files, with slash on the end.
+
 **--targejs** - the directory to which JavaScript files will be copied.
 
 **--targethtml** - directory to which HTML files will be copied.
