@@ -6,40 +6,46 @@ from time import sleep
 from datetime import datetime
 
 argparser = argparse.ArgumentParser(
-    prog="Angular deployer to Flask",
-    description="Set the angular build folder and the flask project folder, and this script will be copied your sources to target folders."
+    prog="Web Project Source Watcher",
+    description="Set the front-end build folder and the back-end target folder, and this script will be copied your sources to target folders."
 )
 
 argparser.add_argument(
-    '--source', 
+    '-s','--source', 
     type=str,
     help="Path to folder with a builded files, with slash on the end."
     )
 argparser.add_argument(
-    '--targetmono', 
+    '-tm','--targetmono', 
     type=str,
     help="Path to target folder which contains all files, with slash on the end."
     )
 argparser.add_argument(
-    '--targetjs', 
+    '-tjs','--targetjs', 
     type=str,
     help="Path to target folder which contains JavaScript files, with slash on the end."
     )
 argparser.add_argument(
-    '--targethtml', 
+    '-th','--targethtml', 
     type=str,
     help="Path to target folder which contains HTML files, with slash on the end."
     )
 argparser.add_argument(
-    '--targetcss', 
+    '-tc','--targetcss', 
     type=str,
     help="Path to target folder which contains CSS files, with slash on the end."
     )
 argparser.add_argument(
-    '--interval', 
+    '-i','--interval', 
     type=int,
     default=5,
     help="Check interval in seconds, default 5 sec.",
+    )
+argparser.add_argument(
+    '-cd','--cleardir', 
+    type=str,
+    default='not',  # first - clear wirh start, always - clear each time
+    help="delete old source files. not - no delete, first - delete only with starting, always - delete each time",
     )
 argvs = argparser.parse_args()
 
@@ -60,36 +66,60 @@ def copy(path1, path2):
         except FileNotFoundError:
             sleep(.5)
 
+def getlfiles_or_none(path):
+    er = None
+    for i in range(5):
+        try:
+            er = None
+            return os.listdir(path)
+        except FileNotFoundError as e:
+            er = e
+            sleep(4)
+    if(er):
+        print(er)
+        
+    return None
+
+def path_adjust(path:str) -> str:
+    if path == '.':
+        return path_adjust(os.getcwd())
+    elif path[:2] == './':
+        return path_adjust(os.getcwd()+path[1:])
+    elif path[-1:] != '/':
+        return path+'/'
+
+
 def main(source, mono=None, js=None, html=None, css=None, interval=None):
     if source is None:
         print("Has no source folder.")
         return
     
     folders = tuple()
+    oldfiles = set()
+    
     if not mono:
         if js is None and html is None and css is None:
             print("Has no targets.")
             return
-        folders = (html,js,css)
+        folders = (
+            path_adjust(html) ,
+            path_adjust(js),
+            path_adjust(css)
+            )
     else:
-        folders=(mono,mono,mono)
-
-    for f in (source,*folders):
-        if f[-1:] != '/':
-            print("The directory path must have a slash on the end.")
-            return
-
+        folders=(
+            path_adjust(mono),
+            path_adjust(mono),
+            path_adjust(mono)
+            )
         
     types = ['html' , 'js' , 'css']
-    try:
-        files = os.listdir(source)
-    except FileNotFoundError as e:
-        print(e)
-        return
+    
 
     os.system('clear')
     try:
         while True:
+            files = getlfiles_or_none(source)
             for file in files:
                 for folder,type in zip(folders,types):
                     if folder is None:
@@ -101,6 +131,7 @@ def main(source, mono=None, js=None, html=None, css=None, interval=None):
                                     copy(source+file,folder+file)
                             else:
                                 copy(source+file,folder+file)
+                            oldfiles.add(file)
                         except FileNotFoundError as e:
                             print("I can't continue working.")
                             print(e)
@@ -110,6 +141,8 @@ def main(source, mono=None, js=None, html=None, css=None, interval=None):
             sleep(interval)
             os.system('clear')
             print('Work...')
+    except TypeError:
+        print("Source directory is not exist.")
     except KeyboardInterrupt:
         print("\b\bExit...")
         sleep(.1)
