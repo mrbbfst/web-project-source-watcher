@@ -47,7 +47,12 @@ argparser.add_argument(
     default='not',  # first - clear wirh start, always - clear each time
     help="delete old source files. not - no delete, first - delete only with starting, always - delete each time",
     )
-argvs = argparser.parse_args()
+try :
+    argvs = argparser.parse_args()
+except SystemExit as e:
+    print("Check the arguments, call --help for help.")
+    exit()
+
 
 def diff(path1,path2):
     for i in range(5):
@@ -87,12 +92,16 @@ def path_adjust(path:str) -> str:
         return path_adjust(os.getcwd()+path[1:])
     elif path[-1:] != '/':
         return path+'/'
+    else:
+        return path
 
 
 def main(source, mono=None, js=None, html=None, css=None, interval=None):
     if source is None:
         print("Has no source folder.")
         return
+    else:
+        source=path_adjust(source)
     
     folders = tuple()
     oldfiles = set()
@@ -107,10 +116,11 @@ def main(source, mono=None, js=None, html=None, css=None, interval=None):
             path_adjust(css)
             )
     else:
+        mono =  path_adjust(mono)
         folders=(
-            path_adjust(mono),
-            path_adjust(mono),
-            path_adjust(mono)
+            mono,
+            mono,
+            mono
             )
         
     types = ['html' , 'js' , 'css']
@@ -143,6 +153,7 @@ def main(source, mono=None, js=None, html=None, css=None, interval=None):
             print('Work...')
     except TypeError:
         print("Source directory is not exist.")
+        sleep(3)
     except KeyboardInterrupt:
         print("\b\bExit...")
         sleep(.1)
